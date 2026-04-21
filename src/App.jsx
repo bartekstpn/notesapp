@@ -14,15 +14,24 @@ function App() {
 
 
   useEffect(() => {
-    fetchNotes();
-  }, []);
-
-  useEffect(() => {
     const el = listRef.current;
     if (!el) return;
 
-    const height = el.scrollHeight;
-    el.style.height = height + "px";
+    const startHeight = el.offsetHeight;
+    el.style.height = startHeight + "px";
+
+    requestAnimationFrame(() => {
+      const endHeight = el.scrollHeight;
+      el.style.height = endHeight + "px";
+    });
+
+    // 🔥 po animacji reset
+    const timeout = setTimeout(() => {
+      el.style.height = "auto";
+    }, 250);
+
+    return () => clearTimeout(timeout);
+
   }, [notes]);
 
 
