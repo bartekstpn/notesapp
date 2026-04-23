@@ -11,7 +11,9 @@ function App() {
   const [deletingId, setDeletingId] = useState(null);
   const listRef = useRef(null);
 
-
+  useEffect(() => {
+    fetchNotes();
+  }, []);
 
   useEffect(() => {
     const el = listRef.current;
