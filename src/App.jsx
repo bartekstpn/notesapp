@@ -4,6 +4,7 @@ import { generateClient } from "aws-amplify/api";
 import { Authenticator, ThemeProvider } from "@aws-amplify/ui-react";
 import "@aws-amplify/ui-react/styles.css";
 
+
 const theme = {
   name: "dark-theme",
   tokens: {
@@ -52,31 +53,13 @@ function App({ signOut, user }) {
   const [deletingId, setDeletingId] = useState(null);
   const listRef = useRef(null);
   const [selectedNote, setSelectedNote] = useState(null);
+  const [descriptionInput, setDescriptionInput] = useState("");
+
 
   useEffect(() => {
     fetchNotes();
   }, []);
 
-  useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-
-    const startHeight = el.offsetHeight;
-    el.style.height = startHeight + "px";
-
-    requestAnimationFrame(() => {
-      const endHeight = el.scrollHeight;
-      el.style.height = endHeight + "px";
-    });
-
-    // 🔥 po animacji reset
-    const timeout = setTimeout(() => {
-      el.style.height = "auto";
-    }, 250);
-
-    return () => clearTimeout(timeout);
-
-  }, [notes]);
 
 
   useEffect(() => {
@@ -100,7 +83,14 @@ function App({ signOut, user }) {
     const sorted = [...data].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
-    setNotes(sorted);
+    const withAnimation = sorted.map(n => ({ ...n, visible: false }));
+    setNotes(withAnimation);
+
+    setTimeout(() => {
+      setNotes(prev =>
+        prev.map(n => ({ ...n, visible: true }))
+      );
+    }, 50);
   }
 
   async function addNote() {
@@ -126,18 +116,18 @@ function App({ signOut, user }) {
     }, 300);
   }
 
-async function updateNote() {
-  if (!editingId) return;
+  async function updateNote() {
+    if (!editingId) return;
 
-  await client.models.Note.update({
-    id: editingId,
-    description: input,
-  });
+    await client.models.Note.update({
+      id: editingId,
+      description: descriptionInput,
+    });
 
-  setInput("");
-  setEditingId(null);
-  fetchNotes();
-}
+    setInput("");
+    setEditingId(null);
+    fetchNotes();
+  }
 
   return (
     <div className="layout">
@@ -161,10 +151,9 @@ async function updateNote() {
         className="container"
         onClick={() => {
           setEditingId(null);
-          setInput("");
         }}
       >
-        <h1>📝 Notes App</h1>
+        <h1>📝 Notes</h1>
 
         <div className="inputRow">
           <input
@@ -177,79 +166,76 @@ async function updateNote() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              editingId ? updateNote() : addNote();
+              addNote();
             }}
           >
-            {editingId ? "Zapisz" : "Dodaj"}
+            Dodaj
           </button>
         </div>
 
         <div className="notesList" ref={listRef}>
           {notes.map((n) => (
-<div
-  className={`noteCard 
-    ${editingId === n.id ? "active" : ""} 
-    ${deletingId === n.id ? "removing" : ""}`}
-  key={n.id}
-  onClick={(e) => {
-    e.stopPropagation();
-    setEditingId(n.id);
-    setInput(n.description || "");
-  }}
->
-  <span>{n.name}</span>
+            <div
+              className={`noteCard 
+              ${n.visible ? "show" : ""}
+              ${editingId === n.id ? "active" : ""} 
+              ${deletingId === n.id ? "removing" : ""}`}
+              key={n.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingId(n.id);
+                setDescriptionInput(n.description || "");
+              }}
+            >
 
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      deleteNote(n.id);
-    }}
-  >
-    ❌
-  </button>
+              {/* HEADER */}
+              <div className="noteHeader">
+                <span>{n.name}</span>
 
-  {/* 👇 TU, nie wyżej */}
-  {editingId === n.id && (
-    <textarea
-      value={input}
-      onChange={(e) => setInput(e.target.value)}
-      onClick={(e) => e.stopPropagation()}
-      placeholder="Dodaj opis..."
-    />
-  )}
-</div>
-          ))}
-          {selectedNote && (
-            <div className="noteDetails">
-              <h2>{selectedNote.name}</h2>
+                <div className="noteActions">
+                  {editingId === n.id && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateNote();
+                      }}
+                    >
+                      Zapisz
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteNote(n.id);
+                    }}
+                  >
+                    ❌
+                  </button>
+                </div>
+              </div>
+              {editingId === n.id && (
+                <textarea
+                  className={`noteTextarea ${editingId === n.id ? "open" : ""}`}
+                  ref={(el) => {
+                    if (el) {
+                      el.style.height = "auto";
+                      el.style.height = el.scrollHeight + "px";
+                    }
+                  }}
+                  value={descriptionInput}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setDescriptionInput(value);
+                    e.target.style.height = "auto";
+                    e.target.style.height = e.target.scrollHeight + "px";
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  placeholder="Dodaj opis..."
+                />
+              )}
 
-              <textarea
-                value={selectedNote.description || ""}
-                onChange={(e) =>
-                  setSelectedNote(prev => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-              />
-
-              <button
-                onClick={async () => {
-
-                  await client.models.Note.update({
-                    id: selectedNote.id,
-                    name: selectedNote.name,
-                    description: selectedNote.description,
-                  });
-
-                  setSelectedNote(null);
-                  fetchNotes();
-                }}
-              >
-                Zapisz opis
-              </button>
             </div>
-          )}
+          ))}
         </div>
       </div>
     </div>
@@ -264,7 +250,7 @@ export default function AppWrapper() {
           Header() {
             return (
               <div style={{ textAlign: "center", marginBottom: 20 }}>
-                <h2>📝 Notes App</h2>
+                <h2>📝 Notes</h2>
                 <p>Zaloguj się, aby kontynuować</p>
               </div>
             );
@@ -276,5 +262,5 @@ export default function AppWrapper() {
         )}
       </Authenticator>
     </ThemeProvider>
-  );
-}
+  )
+};
