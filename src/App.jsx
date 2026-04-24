@@ -51,6 +51,7 @@ function App({ signOut, user }) {
   const [editingId, setEditingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const listRef = useRef(null);
+  const [selectedNote, setSelectedNote] = useState(null);
 
   useEffect(() => {
     fetchNotes();
@@ -107,6 +108,7 @@ function App({ signOut, user }) {
 
     await client.models.Note.create({
       name: input,
+      description: ""
     });
 
     setInput("");
@@ -124,18 +126,18 @@ function App({ signOut, user }) {
     }, 300);
   }
 
-  async function updateNote() {
-    if (!input || !editingId) return;
+async function updateNote() {
+  if (!editingId) return;
 
-    await client.models.Note.update({
-      id: editingId,
-      name: input,
-    });
+  await client.models.Note.update({
+    id: editingId,
+    description: input,
+  });
 
-    setInput("");
-    setEditingId(null);
-    fetchNotes();
-  }
+  setInput("");
+  setEditingId(null);
+  fetchNotes();
+}
 
   return (
     <div className="layout">
@@ -184,36 +186,70 @@ function App({ signOut, user }) {
 
         <div className="notesList" ref={listRef}>
           {notes.map((n) => (
-            <div
-              className={`noteCard 
-              ${editingId === n.id ? "active" : ""} 
-              ${deletingId === n.id ? "removing" : ""}`}
-              key={n.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                setInput(n.name);
-                setEditingId(n.id);
-              }}
-            >
-              <span
-                onClick={() => {
-                  setInput(n.name);
-                  setEditingId(n.id);
-                }}
-              >
-                {n.name}
-              </span>
+<div
+  className={`noteCard 
+    ${editingId === n.id ? "active" : ""} 
+    ${deletingId === n.id ? "removing" : ""}`}
+  key={n.id}
+  onClick={(e) => {
+    e.stopPropagation();
+    setEditingId(n.id);
+    setInput(n.description || "");
+  }}
+>
+  <span>{n.name}</span>
+
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      deleteNote(n.id);
+    }}
+  >
+    ❌
+  </button>
+
+  {/* 👇 TU, nie wyżej */}
+  {editingId === n.id && (
+    <textarea
+      value={input}
+      onChange={(e) => setInput(e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      placeholder="Dodaj opis..."
+    />
+  )}
+</div>
+          ))}
+          {selectedNote && (
+            <div className="noteDetails">
+              <h2>{selectedNote.name}</h2>
+
+              <textarea
+                value={selectedNote.description || ""}
+                onChange={(e) =>
+                  setSelectedNote(prev => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
 
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteNote(n.id);
+                onClick={async () => {
+
+                  await client.models.Note.update({
+                    id: selectedNote.id,
+                    name: selectedNote.name,
+                    description: selectedNote.description,
+                  });
+
+                  setSelectedNote(null);
+                  fetchNotes();
                 }}
               >
-                ❌
+                Zapisz opis
               </button>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

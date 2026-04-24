@@ -6,16 +6,17 @@ body {
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 20px auto;
   width: 100%;
-  background: black;
-  padding: 20px;
+  background: rgb(0, 0, 0);
+  padding: 50px;
   border-radius: 12px;
   flex: none;
   transition: max-height 0.7s ease; /* 🔥 animacja */
   overflow: hidden;                 /* 🔥 ważne */
   overflow-y: auto;
+  margin-left: auto;
 }
 
 h1 {
@@ -145,8 +146,6 @@ button:hover {
   --amplify-colors-background-primary: #0f172a;
   --amplify-colors-background-secondary: #1e293b;
 
-  --amplify-colors-font-primary: #ffffff;
-
   --amplify-colors-brand-primary-10: #6366f1;
   --amplify-colors-brand-primary-80: #4f46e5;
   --amplify-colors-brand-primary-90: #ca3838;
@@ -157,6 +156,7 @@ button:hover {
 
   --amplify-components-fieldcontrol-border-radius: 8px;
   --amplify-components-button-border-radius: 8px;
+  --amplify-components-button-color: red;
 }
 
 .layout {
@@ -168,14 +168,15 @@ button:hover {
 
 /* sidebar */
 .sidebar {
-  margin: 20px auto;
+  margin: 20px;
   height: 150px;
-  width: 220px;
+  width: 150px auto;
   background: black;
   border-radius: 12px;
   color: white;
   padding: 20px;
   border-right: 1px solid #1e293b;
+  margin-left: auto;
 }
 
 /* user section */
@@ -185,6 +186,7 @@ button:hover {
   flex-direction: column;
   gap: 10px;
   text-align: center;
+  margin-left: auto;
 }
 
 /* email */
@@ -195,6 +197,7 @@ button:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-left: auto;
 }
 
 /* logout */
@@ -228,4 +231,41 @@ button:hover {
   color: white;
   font-weight: bold;
   margin: 0 auto;
+}
+
+
+.appContent {
+  display: flex;
+  gap: 20px;
+}
+
+.notesSection {
+  flex: 1;
+}
+
+.noteDetails {
+  width: 300px;
+  background: #111827;
+  border-left: 1px solid #1f2937;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.noteDetails h2 {
+  margin-bottom: 10px;
+}
+
+.noteDetails textarea {
+  width: 100%;
+  min-height: 120px;
+  background: #0f172a;
+  color: white;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.noteDetails button {
+  width: 100%;
 }
