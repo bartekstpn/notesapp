@@ -10,6 +10,18 @@ const schema = a.schema({
     .authorization((allow) => [
       allow.owner().to(["create", "read", "update", "delete"]),
     ]),
+  ShareRequest: a
+    .model({
+      senderEmail: a.string(),
+      recipientEmail: a.string(),
+      name: a.string(),
+      description: a.string(),
+      image: a.string(),
+      status: a.string(),
+    })
+    .authorization((allow) => [
+      allow.authenticated().to(["create", "read", "update", "delete"]),
+    ]),
 });
 
 
